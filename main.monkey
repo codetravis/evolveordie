@@ -2,13 +2,18 @@ Import evolveordie
 
 Class EvolveOrDieGame Extends App
 	
-	Field starting_pos:Vec2D
 	Field player:Player
+	Field plants:List<PlantLife>
+	Field max_plants:Int
 	
 	Method OnCreate()
 		SetUpdateRate(60)
-		starting_pos = New Vec2D(10, 10)
-		player = New Player("Me", starting_pos, 4.0)
+		max_plants = 10
+		plants = New List<PlantLife>()
+		player = New Player("Me", 200, 200, 4.0)
+		GeneratePlants()
+		' Set the random seed for this instance of the game
+		Seed = Millisecs()
 	End
 	
 	Method OnUpdate()
@@ -16,11 +21,48 @@ Class EvolveOrDieGame Extends App
 			player.SetTarget(TouchX(0), TouchY(0))
 		End
 		player.Update()
+		EatPlant()
+		GeneratePlants()
 	End
 	
 	Method OnRender()
 		Cls(255, 255, 255)
 		player.Draw()
+		For Local plant:PlantLife = Eachin plants
+			plant.Draw()
+		End
+	End
+	
+	Method GeneratePlants()
+		Local plant_count:Int = plants.Count()
+		If plant_count < max_plants
+			For Local i:Int = plant_count Until max_plants
+				Local xpos:Float = Rnd(25.0, 615.0)
+				Local ypos:Float = Rnd(25.0, 455.0)
+				Local poison_chance:Float = Rnd(1.0, 11.0)
+				Local poisonous:Int = 0
+				If poison_chance > 9.0
+					poisonous = 1
+				End
+				
+				plants.AddLast(New PlantLife("plant", xpos, ypos, 1, 1, poisonous))
+			End
+		End
+	End
+	
+	Method EatPlant()
+		For Local plant:PlantLife = Eachin plants
+			If player.box.Collide(plant.box)
+				plants.Remove(plant)
+				If plant.poisonous
+					If player.size > 1
+						player.size -= 1
+					End
+				Else
+					player.exp += plant.exp
+				End
+			End
+		End
 	End
 End
 
