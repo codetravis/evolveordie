@@ -58,7 +58,6 @@ Class Player
 	Method Draw()
 		SetColor(0, 255, 0)
 		DrawRect(position.x, position.y, size * BASE_SIZE, size * BASE_SIZE)
-		'DrawRect(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, size * BASE_SIZE, size * BASE_SIZE)
 		SetColor(255, 255, 255)
 	End
 	
@@ -85,7 +84,7 @@ Class Player
 	End
 	
 	Method SetTarget(x:Float, y:Float)
-		Self.target = New Vec2D(x, y)
+		Self.target = New Vec2D(x - size * BASE_SIZE/2, y - size * BASE_SIZE/2)
 		
 		distance = position.Distance(target)
 		

@@ -4,12 +4,24 @@ Class EvolveOrDieGame Extends App
 	
 	Field player:Player
 	Field cam:Camera
+	
 	Field plants:List<PlantLife>
 	Field max_plants:Int
+	Field max_poison:Int
+	Field poison_count:Int
+	
+	Field map_width:Float
+	Field map_height:Float
 	
 	Method OnCreate()
 		SetUpdateRate(60)
-		max_plants = 10
+		
+		map_width = 1000
+		map_height = 1000
+		
+		max_plants = 100
+		max_poison = 20
+		poison_count = 0
 		plants = New List<PlantLife>()
 		player = New Player("Me", 320, 240, 4.0)
 		cam = New Camera( )
@@ -44,12 +56,13 @@ Class EvolveOrDieGame Extends App
 		Local plant_count:Int = plants.Count()
 		If plant_count < max_plants
 			For Local i:Int = plant_count Until max_plants
-				Local xpos:Float = Rnd(25.0, 615.0)
-				Local ypos:Float = Rnd(25.0, 455.0)
-				Local poison_chance:Float = Rnd(1.0, 11.0)
+				Local xpos:Float = Rnd(25.0, map_width - 20)
+				Local ypos:Float = Rnd(25.0, map_height - 20)
+				Local poison_chance:Float = Rnd(1.0, 10.0)
 				Local poisonous:Int = 0
-				If poison_chance > 9.0
+				If (poison_chance > 9.0) And (poison_count < max_poison)
 					poisonous = 1
+					poison_count += 1
 				End
 				
 				plants.AddLast(New PlantLife("plant", xpos, ypos, 1, 1, poisonous))
@@ -64,6 +77,7 @@ Class EvolveOrDieGame Extends App
 				If plant.poisonous
 					If player.size > 1
 						player.size -= 1
+						poison_count -= 1
 					End
 				Else
 					player.exp += plant.exp
