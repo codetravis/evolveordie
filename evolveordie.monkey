@@ -1,6 +1,8 @@
 Import Mojo
 
 Const BASE_SIZE:Int = 5
+Const SCREEN_WIDTH:Int = 640
+Const SCREEN_HEIGHT:Int = 480
 
 Class Vec2D
 	Field x:Float
@@ -56,6 +58,7 @@ Class Player
 	Method Draw()
 		SetColor(0, 255, 0)
 		DrawRect(position.x, position.y, size * BASE_SIZE, size * BASE_SIZE)
+		'DrawRect(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, size * BASE_SIZE, size * BASE_SIZE)
 		SetColor(255, 255, 255)
 	End
 	
@@ -163,4 +166,23 @@ Class Box
 		End
 	End
 
+End
+
+Class Camera
+	Field original_pos:Vec2D
+	Field position:Vec2D
+	
+	Method New(x:Float=0, y:Float=0)
+		Self.position = New Vec2D(x, y)
+		Self.original_pos = New Vec2D(x, y)
+	End
+	
+	Method Reset()
+		Self.position.Set(original_pos.x, original_pos.y)
+	End
+	
+	Method Update(velocity:Vec2D)
+		Self.position.x -= velocity.x
+		Self.position.y -= velocity.y
+	End
 End

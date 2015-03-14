@@ -3,6 +3,7 @@ Import evolveordie
 Class EvolveOrDieGame Extends App
 	
 	Field player:Player
+	Field cam:Camera
 	Field plants:List<PlantLife>
 	Field max_plants:Int
 	
@@ -10,7 +11,8 @@ Class EvolveOrDieGame Extends App
 		SetUpdateRate(60)
 		max_plants = 10
 		plants = New List<PlantLife>()
-		player = New Player("Me", 200, 200, 4.0)
+		player = New Player("Me", 320, 240, 4.0)
+		cam = New Camera( )
 		GeneratePlants()
 		' Set the random seed for this instance of the game
 		Seed = Millisecs()
@@ -18,8 +20,9 @@ Class EvolveOrDieGame Extends App
 	
 	Method OnUpdate()
 		If TouchDown(0)
-			player.SetTarget(TouchX(0), TouchY(0))
+			player.SetTarget(TouchX(0) - cam.position.x, TouchY(0) - cam.position.y)
 		End
+		cam.Update(player.velocity)
 		player.Update()
 		EatPlant()
 		GeneratePlants()
@@ -27,10 +30,14 @@ Class EvolveOrDieGame Extends App
 	
 	Method OnRender()
 		Cls(255, 255, 255)
+		PushMatrix()
+		Translate(cam.position.x, cam.position.y)
 		player.Draw()
+		
 		For Local plant:PlantLife = Eachin plants
 			plant.Draw()
 		End
+		PopMatrix()
 	End
 	
 	Method GeneratePlants()
