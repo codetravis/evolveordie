@@ -5,6 +5,9 @@ Const SCREEN_WIDTH:Int = 640
 Const SCREEN_HEIGHT:Int = 480
 
 Class Vec2D
+	' Vec2D class shamelessly borrowed from Jim's Small Time Outlaws
+	' Youtube channel on creating basic games with Monkey X
+	
 	Field x:Float
 	Field y:Float
 	
@@ -17,6 +20,8 @@ Class Vec2D
 		Self.y = y
 	End
 	
+	' My own personal touch to Jim's code
+	' Calculates Euclidean Distance
 	Method Distance(point:Vec2D)
 		Local xdelta:Float = point.x - Self.x
 		Local ydelta:Float = point.y - Self.y
@@ -61,7 +66,7 @@ Class Player
 		SetColor(255, 255, 255)
 	End
 	
-	Method Update()
+	Method Update(map_width:Float, map_height:Float)
 		' update position
 		Self.old_position.Set(position.x, position.y)
 		Self.position.Set(position.x + velocity.x, position.y + velocity.y)
@@ -73,7 +78,29 @@ Class Player
 				' we are not getting closer to the target anymore so stop moving
 				velocity.Set(0, 0)
 			End
+				
 		End
+		
+		
+		' Don't go outside boundaries
+		If (position.y < 0)
+			velocity.Set(velocity.x, 0)
+			position.y = 0
+		End
+		If (position.y + size * BASE_SIZE > map_height)
+			velocity.Set(velocity.x, 0)
+			position.y = map_height - size * BASE_SIZE
+		End
+		If (position.x < 0)
+			velocity.Set(0, velocity.y)
+			position.x = 0
+		End
+		If (position.x + size * BASE_SIZE > map_width)
+			velocity.Set(0, velocity.y)
+			position.x = map_width - size * BASE_SIZE
+		End
+		
+		
 		' update size
 		If exp >= 10
 			size += 1
@@ -168,6 +195,9 @@ Class Box
 End
 
 Class Camera
+	' Camera class alos shamelessly borrowed from Jim's Small Time Outlaws
+	' Youtube channel on creating basic games with Monkey X 
+	' Great stuff you should seriously check it out
 	Field original_pos:Vec2D
 	Field position:Vec2D
 	
@@ -180,6 +210,8 @@ Class Camera
 		Self.position.Set(original_pos.x, original_pos.y)
 	End
 	
+	' My own take on the update method though
+	' This is what we use to follow the player around
 	Method Update(velocity:Vec2D)
 		Self.position.x -= velocity.x
 		Self.position.y -= velocity.y

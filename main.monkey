@@ -34,8 +34,9 @@ Class EvolveOrDieGame Extends App
 		If TouchDown(0)
 			player.SetTarget(TouchX(0) - cam.position.x, TouchY(0) - cam.position.y)
 		End
+		' Player update needs to happen first so the camera will behave with the world boundaries
+		player.Update(map_width, map_height)
 		cam.Update(player.velocity)
-		player.Update()
 		EatPlant()
 		GeneratePlants()
 	End
@@ -50,6 +51,9 @@ Class EvolveOrDieGame Extends App
 			plant.Draw()
 		End
 		PopMatrix()
+		' For debugging purposes
+		DrawText("position: " + player.position.x + " " + player.position.y, 10, 10)
+		DrawText("Velocity: " + player.velocity.x + " " + player.velocity.y, 10, 450)
 	End
 	
 	Method GeneratePlants()
