@@ -45,23 +45,29 @@ Class Player
 	Field speed:Float
 	Field rotation:Float
 	Field box:Box
+	Field is_enemy:Bool
 	
-	Method New(name:String, x:Float, y:Float, speed:Float)
+	Method New(name:String, x:Float, y:Float, speed:Float, size:Int=2, is_enemy:Bool=false)
 		Self.name = name
 		Self.position = New Vec2D(x, y)
 		Self.old_position = New Vec2D(x, y)
 		Self.speed = speed
 		
 		Self.velocity = New Vec2D(0, 0)
-		Self.size = 2
+		Self.size = size
 		Self.exp = 0
 		Self.rotation = 0
 		Self.distance = 0
 		Self.box = New Box(x, y, size * BASE_SIZE, size * BASE_SIZE)
+		Self.is_enemy = is_enemy
 	End
 	
 	Method Draw()
-		SetColor(0, 255, 0)
+		If is_enemy
+			SetColor(255, 255, 0)
+		Else
+			SetColor(0, 255, 0)
+		End
 		DrawRect(position.x, position.y, size * BASE_SIZE, size * BASE_SIZE)
 		SetColor(255, 255, 255)
 	End
@@ -105,6 +111,9 @@ Class Player
 		If exp >= 10
 			size += 1
 			exp -= 10
+			If speed >= 2.5
+				speed -= 0.1
+			End
 		End
 		' update box
 		Self.box.Set(position.x, position.y, size * BASE_SIZE, size * BASE_SIZE)
