@@ -1,6 +1,19 @@
 Import evolveordie
 
+Const STATE_MENU:Int = 0
+Const STATE_GAME:Int = 1
+Const STATE_DEATH:Int = 2
+Const STATE_HELP:Int = 3
+Const STATE_WIN:Int = 4
+
 Class EvolveOrDieGame Extends App
+	
+	Field game_state:Int
+	
+	Field menu_img:Image
+	Field help_img:Image
+	Field last_touch:Float
+	Field last_plants:Float
 	
 	Field player:Player
 	Field cam:Camera
@@ -18,12 +31,15 @@ Class EvolveOrDieGame Extends App
 	
 	Method OnCreate()
 		SetUpdateRate(60)
+		game_state = STATE_MENU
+		menu_img = LoadImage("main_screen.png")
+		help_img = LoadImage("instructions.png")
 		
 		map_width = 1000
 		map_height = 1000
 		
 		max_plants = 100
-		max_poison = 1
+		max_poison = 10
 		poison_count = 0
 		plants = New List<PlantLife>()
 		
@@ -39,39 +55,79 @@ Class EvolveOrDieGame Extends App
 	End
 	
 	Method OnUpdate()
-		If TouchDown(0)
-			player.SetTarget(TouchX(0) - cam.position.x, TouchY(0) - cam.position.y)
+		Select game_state
+			Case STATE_MENU
+				If (TouchDown(0) And TouchX(0) < 425 And TouchX(0) > 185 And
+					TouchY(0) > 365 And TouchY(0) < 445)
+					game_state = STATE_HELP
+					last_touch = Millisecs()
+				End
+			Case STATE_HELP
+				If (TouchDown(0) And Millisecs() - last_touch > 300)
+					game_state = STATE_GAME
+				End
+			Case STATE_GAME 
+				If TouchDown(0)
+					player.SetTarget(TouchX(0) - cam.position.x, TouchY(0) - cam.position.y)
+				End
+				' Player update needs to happen first so the camera will behave with the world boundaries
+				player.Update(map_width, map_height)
+				
+				For Local enemy:Player = Eachin enemies
+					FindTarget(enemy)
+					enemy.Update(map_width, map_height)
+				End
+				
+				cam.Update(player.velocity)
+				EatPlant()
+				EatPlayer()
+				If Millisecs() - last_plants > 2000
+					GeneratePlants()
+				End
+				If (player.size >= 11 Or enemies.Count = 0)
+					game_state = STATE_WIN
+					last_touch = Millisecs()
+				End
 		End
-		' Player update needs to happen first so the camera will behave with the world boundaries
-		player.Update(map_width, map_height)
-		
-		For Local enemy:Player = Eachin enemies
-			FindTarget(enemy)
-			enemy.Update(map_width, map_height)
-		End
-		
-		cam.Update(player.velocity)
-		EatPlant()
-		GeneratePlants()
 	End
 	
 	Method OnRender()
 		Cls(128, 128, 128)
-		PushMatrix()
-		Translate(cam.position.x, cam.position.y)
-		player.Draw()
-		
-		For Local enemy:Player = Eachin enemies
-			enemy.Draw()
+		Select game_state
+			Case STATE_MENU
+				DrawImage(menu_img, 0, 0)
+			Case STATE_HELP
+				DrawImage(help_img, 0, 0)
+			Case STATE_GAME
+				PushMatrix()
+				Translate(cam.position.x, cam.position.y)
+				player.Draw()
+				
+				For Local enemy:Player = Eachin enemies
+					enemy.Draw()
+				End
+				
+				For Local plant:PlantLife = Eachin plants
+					plant.Draw()
+				End
+				PopMatrix()
+			Case STATE_DEATH
+				DrawText("Only the strong survive. You were not strong enough.", 220, 220, 0.5)
+				If (TouchDown(0) And Millisecs() - last_touch > 700)
+					GenerateEnemies()
+					player.size = 2
+					player.exp = 0
+					game_state = STATE_GAME
+				End 
+			Case STATE_WIN
+				DrawText("The species will live on. Congratulations", 220, 220, 0.5)
+				If (TouchDown(0) And Millisecs() - last_touch > 700)
+					GenerateEnemies()
+					player.size = 2
+					player.exp = 0
+					game_state = STATE_GAME
+				End
 		End
-		
-		For Local plant:PlantLife = Eachin plants
-			plant.Draw()
-		End
-		PopMatrix()
-		' For debugging purposes
-		DrawText("position: " + player.position.x + " " + player.position.y, 10, 10)
-		DrawText("Velocity: " + player.velocity.x + " " + player.velocity.y, 10, 450)
 	End
 	
 	Method GenerateEnemies()
@@ -80,7 +136,6 @@ Class EvolveOrDieGame Extends App
 			Local ypos:Float = Rnd(50.0, map_height - 50)
 			' start enemies a little bigger and slower
 			enemies.AddLast(New Player("enemy_" + i, xpos, ypos, 3.8, 3, true))
-			Print "made enemy " + i
 		End
 	End
 	
@@ -109,6 +164,7 @@ Class EvolveOrDieGame Extends App
 				plants.AddLast(New PlantLife("plant", xpos, ypos, 1, 1, poisonous))
 			End
 		End
+		last_plants = Millisecs()
 	End
 	
 	Method EatPlant()
@@ -139,6 +195,28 @@ Class EvolveOrDieGame Extends App
 				End
 			End
 		End
+	End
+	
+	Method EatPlayer()
+		For Local enemy:Player = Eachin enemies
+			If enemy.box.Collide(player.box)
+				If (enemy.size - player.size) >= 3
+					game_state = STATE_DEATH
+					last_touch = Millisecs()
+				Else
+					enemy.size -= 1
+					player.size -= 1
+					player.exp = 0
+					If player.size = 0
+						game_state = STATE_DEATH
+						last_touch = Millisecs()
+					End
+					If enemy.size = 0
+						enemies.Remove(enemy)
+					End
+				End
+			End
+		End	
 	End
 	
 End

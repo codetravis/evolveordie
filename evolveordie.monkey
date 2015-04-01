@@ -43,6 +43,7 @@ Class Player
 	Field size:Int
 	Field exp:Int
 	Field speed:Float
+	Field base_speed:Float
 	Field rotation:Float
 	Field box:Box
 	Field is_enemy:Bool
@@ -52,6 +53,7 @@ Class Player
 		Self.position = New Vec2D(x, y)
 		Self.old_position = New Vec2D(x, y)
 		Self.speed = speed
+		Self.base_speed = speed
 		
 		Self.velocity = New Vec2D(0, 0)
 		Self.size = size
@@ -111,10 +113,10 @@ Class Player
 		If exp >= 10
 			size += 1
 			exp -= 10
-			If speed >= 2.5
-				speed -= 0.1
-			End
 		End
+		
+		' update speed
+		speed = base_speed - (0.1 * size)
 		' update box
 		Self.box.Set(position.x, position.y, size * BASE_SIZE, size * BASE_SIZE)
 	End
